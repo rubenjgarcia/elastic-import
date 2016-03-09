@@ -1,0 +1,32 @@
+{
+  "name": "elastic-import",
+  "version": "0.1.0",
+  "description": "CLI for import data to ElasticSearch",
+  "keywords": [
+    "elasticsearch",
+    "import",
+    "mongo",
+    "mongodb"
+  ],
+  "author": {
+    "name": "Ruben J Garcia",
+    "email": "rubenjgarciab@gmail.com",
+    "url": "https://github.com/rubenjgarcia"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:rubenjgarcia/elastic-import.git"
+  },
+  "main": "index.js",
+  "bin": {
+    "elastic-import": "./bin/elastic-import.js"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^1.1.1",
+    "commander": "^2.9.0",
+    "elasticsearch": "^10.1.3",
+    "lodash": "^4.6.1",
+    "moment": "^2.12.0"
+  }
+}
