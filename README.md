@@ -2,6 +2,10 @@
 
 A light tool to import data to [ElasticSearch](https://www.elastic.co/products/elasticsearch)
 
+## Install
+
+    npm install elastic-import
+
 ## Usage
 
 You can see all the options using the command `elastic-import --help`
@@ -27,7 +31,7 @@ Or you can see help for specific command
 `elastic-import from-mongoexport --help`
 
 ```
-Usage: elastic-import-from-mongoexport [options] <file> <host>
+Usage: elastic-import-from-mongoexport [options] <file> <host> <index> <type>
 
 Imports a file from mongoexport
 
@@ -37,34 +41,39 @@ Options:
   -V, --version                    output the version number
   -l, --log <level>                ElasticSearch log value. One of 'trace', 'debug', 'info', 'warn', 'error'. Default is 'info'
   -b, --bulk-size <size>           Records sent to the Elasticsearch server for each request. Default is 1000
-  -i, --index <index>              ElasticSearch index
-  -t, --type <type>                ElasticSearch index type
   -g, --ignore <fields>            Comma separated fields that will be ignored. You can use 'field.sub', 'field.sub[0].sub' or 'field.sub[*].sub'
   -w, --warn-errors                Warns on error instead of kill the process
-  -f, --transform-file <file>      Path to a file that exports a function to transform the object fields
-  -d, --transform-fields <fields>  Comma separated fields that will be pass through the transform function
+  -f, --transform-file <file>      Path to a file that exports a function to transform the object
 
 ```
 
 #### from-mongoexport transform functions
 
-You can use a function to transform any field before submitting to ElasticSearch
+You can use a function to transform any record before submitting to ElasticSearch
 
 Here's an example
 
 ```
 'use strict'
 
-module.exports = function (orig, field, value) {
-  return value.toLowerCase()
+module.exports = function (record) {
+  record.myfield.toLowerCase()
 }
 ```
 
-The arguments of the function are: 
+The argument of the function is the original JSON object
 
-- orig: Original JSON object
-- field: Field name
-- value: Original field value
+You can return a new object instead the original object
+
+```
+'use strict'
+
+module.exports = function (record) {
+  return {
+    newField : record.oldField
+  }
+}
+```
 
 ### Examples
 
