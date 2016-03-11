@@ -19,20 +19,17 @@ var host
 
 program
   .version(pkg.version)
-  .arguments('<file> <host>')
+  .arguments('<file> <host> <index> <type>')
   .option('-l, --log <level>', 'ElasticSearch log value. One of \'trace\', \'debug\', \'info\', \'warn\', \'error\'. Default is \'info\'', 'info')
   .option('-b, --bulk-size <size>', 'Records sent to the Elasticsearch server for each request. Default is 1000', 1000)
-  .option('-i, --index <index>', 'ElasticSearch index')
-  .option('-t, --type <type>', 'ElasticSearch index type')
   .option('-g, --ignore <fields>', 'Comma separated fields that will be ignored. You can use \'field.sub\', \'field.sub[0].sub\' or \'field.sub[*].sub\'')
   .option('-w, --warn-errors', 'Warns on error instead of kill the process')
-  .option('-f, --transform-file <file>', 'Path to a file that exports a function to transform the object fields')
-  .option('-d, --transform-fields <fields>', 'Comma separated fields that will be pass through the transform function')
+  .option('-f, --transform-file <file>', 'Path to a file that exports a function to transform the object')
   .description('Imports a file from mongoexport')
   .parse(process.argv)
 
 if (!program.args[ 0 ]) {
-  console.log(chalk.red('Elastic Import [mongoexport]: You must provide a file path. See \'elastic-import from-mongoexport --help\''))
+  program.help()
   process.exit(1)
 }
 
@@ -53,8 +50,8 @@ host = program.args[ 1 ]
 var logLevel = [ 'trace', 'debug', 'info', 'warn', 'error' ]
 program.log = _.includes(logLevel, program.log) ? program.log : 'info'
 
-var index = program.index
-var type = program.type
+var index = program.args[ 2 ]
+var type = program.args[ 3 ]
 
 if (!index) {
   console.log(chalk.red('Elastic Import [mongoexport]: You must provide an index. See \'elastic-import from-mongoexport --help\''))
@@ -67,11 +64,10 @@ if (!type) {
 }
 
 var transform
-var transformFields
 
 if (program.transformFile) {
   if (!fs.existsSync(program.transformFile)) {
-    console.log(chalk.red('Elastic Import [mongoexport]: The file \'' + file + '\' doesn\'t exist'))
+    console.log(chalk.red('Elastic Import [mongoexport]: The file \'' + program.transformFile + '\' doesn\'t exist'))
     process.exit(1)
   }
 
@@ -81,13 +77,6 @@ if (program.transformFile) {
     console.log(chalk.red('Elastic Import [mongoexport]: The transform file doesn\'t export a function'))
     process.exit(1)
   }
-
-  if (!program.transformFields) {
-    console.log(chalk.red('Elastic Import [mongoexport]: You must provide the fields to transform'))
-    process.exit(1)
-  }
-
-  transformFields = program.transformFields
 }
 
 var client = new elasticsearch.Client({
@@ -103,11 +92,11 @@ var indexData = function () {
   var body = []
   partial.map(function (record) {
     Object.keys(record).map(function (key) {
-      if (_.isObject(record[key])) {
-        if (record[key]['$oid']) {
-          record[key] = record[key]['$oid']
-        } else if (record[key]['$date']) {
-          record[key] = moment(record[key]['$date']).toDate()
+      if (_.isObject(record[ key ])) {
+        if (record[ key ][ '$oid' ]) {
+          record[ key ] = record[ key ][ '$oid' ]
+        } else if (record[ key ][ '$date' ]) {
+          record[ key ] = moment(record[ key ][ '$date' ]).toDate()
         }
       }
     })
@@ -117,7 +106,7 @@ var indexData = function () {
         ignore = ignore.trim()
         if (ignore.indexOf('[*].') !== -1) {
           var field = ignore.substring(0, ignore.indexOf('[*]'))
-          var obj = record[field]
+          var obj = record[ field ]
           if (obj && _.isArray(obj)) {
             var afterField = ignore.substring(ignore.indexOf('[*].') + 4)
             obj.map(function (value) {
@@ -130,11 +119,8 @@ var indexData = function () {
       })
     }
 
-    if (transformFields) {
-      transformFields.split(',').map(function (field) {
-        var transformed = transform(record, field, _.get(record, field))
-        _.set(record, field, transformed)
-      })
+    if (program.transformFile) {
+      record = transform(record) || record
     }
 
     body.push({ create: { _index: index, _type: type, _id: record._id } })
@@ -156,7 +142,10 @@ var indexData = function () {
 
         errors.map(function (item) {
           var message = item.index ? item.index.error : item.create.error
-          console.log(color('Error: ' + message.type), color('-'), color('Reason: ' + message.reason))
+          console.log(color('Error: ' + message.type), color('-'),
+            color('Reason: ' + message.reason),
+            color('-'), color('Caused by: ' + message.caused_by.reason)
+          )
         })
         console.log(color('Elastic Import [mongoexport]: Sent ' + partial.length + ' records (' + errors.length + ' errors)'))
       }
@@ -177,7 +166,7 @@ readline.createInterface({
   var json = JSON.parse(line)
   data.push(json)
 
-  if (data.length === program.bulkSize) {
+  if (data.length >= program.bulkSize) {
     indexData()
   }
 }).on('close', function () {
