@@ -79,15 +79,15 @@ module.exports = function (record) {
 
 Import from a [mongoexport](https://docs.mongodb.org/manual/reference/program/mongoexport) JSON file
 
-    elastic-import from-mongoexport ~/tmp/tweets.json localhost:9200 -i index -t type
+    elastic-import from-mongoexport ~/tmp/tweets.json localhost:9200 index type
      
 Import from a mongoexport JSON file ignoring file _ignoreMe_ and all the _ignoreMe_ fields in the field myArray 
 
-    elastic-import from-mongoexport ~/tmp/tweets.json localhost:9200 -i index -t type -g ignoreMe,myArray[*].ignoreMe
+    elastic-import from-mongoexport ~/tmp/tweets.json localhost:9200 index type -g ignoreMe,myArray[*].ignoreMe
     
-Import from a mongoexport JSON file using the function in the file _transform.js_ to transform the field _transformMe_ 
+Import from a mongoexport JSON file using the function in the file _transform.js_ to transform the records
 
-    elastic-import from-mongoexport ~/tmp/tweets.json localhost:9200 -i index -t type -f transform.js -d transformMe
+    elastic-import from-mongoexport ~/tmp/tweets.json localhost:9200 index type -f transform.js
 
 ## TODO
 
