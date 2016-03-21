@@ -6,7 +6,7 @@ A light tool to import data to [ElasticSearch](https://www.elastic.co/products/e
 
     npm install elastic-import
 
-## Usage
+## Usage from CLI
 
 You can see all the options using the command `elastic-import --help`
 
@@ -44,7 +44,7 @@ Here's an example
 'use strict'
 
 module.exports = function (record) {
-  record.myfield.toLowerCase()
+  record.myfield = record.myfield.toLowerCase()
 }
 ```
 
@@ -66,12 +66,31 @@ module.exports = function (record) {
 
 Import from a [mongoexport](https://docs.mongodb.org/manual/reference/program/mongoexport) JSON file
 
-    elastic-import ~/tmp/tweets.json localhost:9200 myindex mytype --mongo
+    elastic-import ~/tmp/data.json localhost:9200 myindex mytype --mongo
      
 Import from a JSON file ignoring file _ignoreMe_ and all the _ignoreMe_ fields in the field myArray
 
-    elastic-import ~/tmp/tweets.json localhost:9200 myindex mytype -i ignoreMe,myArray[*].ignoreMe --json
+    elastic-import ~/tmp/data.json localhost:9200 myindex mytype -i ignoreMe,myArray[*].ignoreMe --json
     
 Import from a CSV file using the function in the file _transform.js_ to transform the records
 
-    elastic-import ~/tmp/tweets.json localhost:9200 myindex mytype -t transform.js --csv -h -p
+    elastic-import ~/tmp/data.csv localhost:9200 myindex mytype -t transform.js --csv -h -p
+
+## Usage from another module
+
+```
+var Importer = require('elastic-import')
+var importer = new Importer({
+  host: 'localhost:9200',
+  index: 'myindex',
+  type: 'mytype',
+  log: 'info',
+  ignore: 'ignoreMe',
+  warnErrors: false,
+  transform: function (record) {
+    record.text = record.text.toUpperCase()
+  }
+})
+
+importer.import([{text: 'Hello world', ignoreMe: 'ignore'}])
+```
