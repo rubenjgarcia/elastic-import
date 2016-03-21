@@ -11,43 +11,30 @@ A light tool to import data to [ElasticSearch](https://www.elastic.co/products/e
 You can see all the options using the command `elastic-import --help`
 
 ```
-Usage: elastic-import [options] [command]
+Usage: elastic-import [options] <file> <host> <index> <type>
 
+  Imports a file from differents types
 
-Commands:
+  Options:
 
-  from-mongoexport <file> <host>  Imports a file from mongoexport
-  help [cmd]                      display help for [cmd]
-
-Options:
-
-  -h, --help     output usage information
-  -V, --version  output the version number
-
-``` 
-
-Or you can see help for specific command
-
-`elastic-import from-mongoexport --help`
-
-```
-Usage: elastic-import-from-mongoexport [options] <file> <host> <index> <type>
-
-Imports a file from mongoexport
-
-Options:
-
-  -h, --help                       output usage information
-  -V, --version                    output the version number
-  -l, --log <level>                ElasticSearch log value. One of 'trace', 'debug', 'info', 'warn', 'error'. Default is 'info'
-  -b, --bulk-size <size>           Records sent to the Elasticsearch server for each request. Default is 1000
-  -g, --ignore <fields>            Comma separated fields that will be ignored. You can use 'field.sub', 'field.sub[0].sub' or 'field.sub[*].sub'
-  -w, --warn-errors                Warns on error instead of kill the process
-  -f, --transform-file <file>      Path to a file that exports a function to transform the object
-
+    -h, --help                   output usage information
+    -V, --version                output the version number
+    -l, --log <level>            ElasticSearch log value. One of 'trace', 'debug', 'info', 'warn', 'error'. Default is 'info'
+    -b, --bulk-size <size>       Records sent to the Elasticsearch server for each request. Default is 1000
+    -i, --ignore <fields>        Comma separated fields that will be ignored. You can use 'field.sub', 'field.sub[0].other' or 'field.sub[*].other'
+    -w, --warn-errors            Warns on error instead of kill the process
+    -t, --transform-file <file>  Path to a file that exports a function to transform the object
+    -f, --fields <fields>        Comma separated name of the fields for CSV import
+    -h, --header-fields          Try to use the first line to parse the name of the fields for CSV import
+    -d, --delimiter <delimiter>  Field delimiter for CSV import. Defaults to comma. For tab use 'tab'
+    -q, --quote <quote>          Character surrounding the fields for CSV import. Defaults to nothing
+    -p, --parse                  Parser will attempt to convert read data types to native types when using CSV import
+    --mongo                      Imports from mongo-export file
+    --json                       Imports from json file
+    --csv                        Imports from csv file
 ```
 
-#### from-mongoexport transform functions
+#### Transform function
 
 You can use a function to transform any record before submitting to ElasticSearch
 
@@ -79,16 +66,12 @@ module.exports = function (record) {
 
 Import from a [mongoexport](https://docs.mongodb.org/manual/reference/program/mongoexport) JSON file
 
-    elastic-import from-mongoexport ~/tmp/tweets.json localhost:9200 index type
+    elastic-import ~/tmp/tweets.json localhost:9200 myindex mytype --mongo
      
-Import from a mongoexport JSON file ignoring file _ignoreMe_ and all the _ignoreMe_ fields in the field myArray 
+Import from a JSON file ignoring file _ignoreMe_ and all the _ignoreMe_ fields in the field myArray
 
-    elastic-import from-mongoexport ~/tmp/tweets.json localhost:9200 index type -g ignoreMe,myArray[*].ignoreMe
+    elastic-import ~/tmp/tweets.json localhost:9200 myindex mytype -i ignoreMe,myArray[*].ignoreMe --json
     
-Import from a mongoexport JSON file using the function in the file _transform.js_ to transform the records
+Import from a CSV file using the function in the file _transform.js_ to transform the records
 
-    elastic-import from-mongoexport ~/tmp/tweets.json localhost:9200 index type -f transform.js
-
-## TODO
-
-- Import from CSV
+    elastic-import ~/tmp/tweets.json localhost:9200 myindex mytype -t transform.js --csv -h -p
