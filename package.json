@@ -1,6 +1,6 @@
 {
   "name": "elastic-import",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "CLI for import data to ElasticSearch",
   "keywords": [
     "elasticsearch",
@@ -17,7 +17,7 @@
     "type": "git",
     "url": "git@github.com:rubenjgarcia/elastic-import.git"
   },
-  "main": "index.js",
+  "main": "lib/importer.js",
   "bin": {
     "elastic-import": "./bin/elastic-import.js"
   },
