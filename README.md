@@ -92,5 +92,7 @@ var importer = new Importer({
   }
 })
 
-importer.import([{text: 'Hello world', ignoreMe: 'ignore'}])
+importer.import([{text: 'Hello world', ignoreMe: 'ignore'}], function (err, response) {
+    // ...
+})
 ```
