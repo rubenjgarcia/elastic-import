@@ -125,7 +125,7 @@ if (program.mongo) {
   })
 } else if (program.json || program.csv) {
   var importData = function () {
-    if (data.length < program.bulkSize) {
+    if (!_.isArray(data) || data.length < program.bulkSize) {
       importer.import(data)
     } else {
       while (true) {
