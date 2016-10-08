@@ -30,6 +30,7 @@ program
   .option('-d, --delimiter <delimiter>', 'Field delimiter for CSV import. Defaults to comma. For tab use \'tab\'', ',')
   .option('-q, --quote <quote>', 'Character surrounding the fields for CSV import. Defaults to nothing', '')
   .option('-p, --parse', 'Parser will attempt to convert read data types to native types when using CSV import')
+  .option('-T, --timeout <timeout>', 'Milliseconds before an Elastic request will be aborted and retried. Default is 30000', 30000)
   .option('--mongo', 'Imports from mongo-export file')
   .option('--json', 'Imports from json file')
   .option('--csv', 'Imports from csv file')
@@ -96,6 +97,7 @@ var importer = new Importer({
   host: host,
   index: index,
   type: type,
+  requestTimeout: program.timeout,
   log: program.log,
   ignore: program.ignore,
   warnErrors: program.warnErrors,
