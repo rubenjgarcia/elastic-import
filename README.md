@@ -4,7 +4,7 @@ A light tool to import data to [ElasticSearch](https://www.elastic.co/products/e
 
 ## Install
 
-    npm install elastic-import
+    npm install elastic-import -g
 
 ## Usage from CLI
 
