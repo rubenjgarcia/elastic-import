@@ -28,7 +28,7 @@ Usage: elastic-import [options] <file> <host> <index> <type>
     -h, --header-fields          Try to use the first line to parse the name of the fields for CSV import
     -d, --delimiter <delimiter>  Field delimiter for CSV import. Defaults to comma. For tab use 'tab'
     -q, --quote <quote>          Character surrounding the fields for CSV import. Defaults to nothing
-    -p, --parse                  Parser will attempt to convert read data types to native types when using CSV import
+    -p, --csvParse               Parser will attempt to convert read data types to native types when using CSV import
     -T  --timeout <timeout>      Milliseconds before an Elastic request will be aborted and retried. Default is 30000
     --mongo                      Imports from mongo-export file
     --json                       Imports from json file

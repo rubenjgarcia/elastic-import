@@ -2,20 +2,17 @@
 
 'use strict'
 
-var program = require('commander')
-var Importer = require('../lib/importer')
+const program = require('commander')
+const Importer = require('../lib/importer')
 
-var path = require('path')
-var chalk = require('chalk')
-var fs = require('fs')
-var readline = require('readline')
-var _ = require('lodash')
-var parse = require('csv-parse')
+const path = require('path')
+const chalk = require('chalk')
+const fs = require('fs')
+const readline = require('readline')
+const _ = require('lodash')
+const parse = require('csv-parse')
 
-var pkg = require(path.join(__dirname, '..', 'package.json'))
-
-var file
-var host
+const pkg = require(path.join(__dirname, '..', 'package.json'))
 
 program
   .version(pkg.version)
@@ -29,7 +26,7 @@ program
   .option('-h, --header-fields', 'Try to use the first line to parse the name of the fields for CSV import')
   .option('-d, --delimiter <delimiter>', 'Field delimiter for CSV import. Defaults to comma. For tab use \'tab\'', ',')
   .option('-q, --quote <quote>', 'Character surrounding the fields for CSV import. Defaults to nothing', '')
-  .option('-p, --parse', 'Parser will attempt to convert read data types to native types when using CSV import')
+  .option('-p, --csvParse', 'Parser will attempt to convert read data types to native types when using CSV import')
   .option('-T, --timeout <timeout>', 'Milliseconds before an Elastic request will be aborted and retried. Default is 30000', 30000)
   .option('--mongo', 'Imports from mongo-export file')
   .option('--json', 'Imports from json file')
@@ -47,7 +44,7 @@ if (!program.mongo && !program.json && !program.csv) {
   process.exit(1)
 }
 
-file = program.args[ 0 ]
+const file = program.args[ 0 ]
 
 if (!fs.existsSync(file)) {
   console.log(chalk.red('Elastic Import: The file \'' + file + '\' doesn\'t exist'))
@@ -59,13 +56,13 @@ if (!program.args[ 1 ]) {
   process.exit(1)
 }
 
-host = program.args[ 1 ]
+const host = program.args[ 1 ]
 
-var logLevel = [ 'trace', 'debug', 'info', 'warn', 'error' ]
+const logLevel = [ 'trace', 'debug', 'info', 'warn', 'error' ]
 program.log = _.includes(logLevel, program.log) ? program.log : 'info'
 
-var index = program.args[ 2 ]
-var type = program.args[ 3 ]
+const index = program.args[ 2 ]
+const type = program.args[ 3 ]
 
 if (!index) {
   console.log(chalk.red('Elastic Import: You must provide an index. See \'elastic-import from-mongoexport --help\''))
@@ -77,7 +74,7 @@ if (!type) {
   process.exit(1)
 }
 
-var transform
+let transform
 
 if (program.transformFile) {
   if (!fs.existsSync(program.transformFile)) {
@@ -93,7 +90,7 @@ if (program.transformFile) {
   }
 }
 
-var importer = new Importer({
+const importer = new Importer({
   host: host,
   index: index,
   type: type,
@@ -104,7 +101,7 @@ var importer = new Importer({
   transform: transform
 })
 
-var data
+let data
 
 if (program.mongo) {
   data = []
@@ -113,7 +110,7 @@ if (program.mongo) {
     input: fs.createReadStream(file, { encoding: 'UTF-8' }),
     terminal: false
   }).on('line', function (line) {
-    var json = JSON.parse(line)
+    const json = JSON.parse(line)
     data.push(json)
 
     if (data.length >= program.bulkSize) {
@@ -126,7 +123,7 @@ if (program.mongo) {
     }
   })
 } else if (program.json || program.csv) {
-  var importData = function () {
+  const importData = function () {
     if (!_.isArray(data) || data.length < program.bulkSize) {
       importer.import(data)
     } else {
@@ -135,7 +132,7 @@ if (program.mongo) {
           break
         }
 
-        var partial = data.splice(0, program.bulkSize)
+        const partial = data.splice(0, program.bulkSize)
         importer.import(partial)
         console.log('sent', partial.length)
       }
@@ -151,13 +148,13 @@ if (program.mongo) {
       process.exit(1)
     }
 
-    var parser = parse({
+    const parser = parse({
       delimiter: program.delimiter === 'tab' ? '\t' : program.delimiter,
       quote: program.quote,
       columns: program.fields ? program.fields.split(',') : true,
       skip_empty_lines: true,
-      auto_parse: program.parse,
-      auto_parse_date: program.parse
+      auto_parse: program.csvParse,
+      auto_parse_date: program.csvParse
     }, function (err, lines) {
       if (err) {
         console.log(err)
